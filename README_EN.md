@@ -1,7 +1,4 @@
-Here is the **English version** of the `README.md`. It contains the exact same technical details and instructions as the Chinese version, formatted for easy copying.
-
-```markdown
-# Realtek 8852AU Linux Driver (Linux Kernel 6.14+)
+# Realtek 8852AU Linux Driver (Based on lwfinger/rtl8852au) (Linux Kernel 6.14+)
 
 This repository contains the Linux driver for the Realtek 8852AU USB Wi-Fi adapter (802.11ax/Wi-Fi 6).
 This version has been patched to support **Linux Kernel 6.14**, addressing build errors caused by recent kernel API changes.
@@ -94,4 +91,3 @@ The following fixes were applied for Linux Kernel 6.14 compatibility:
     - Fixed `cfg80211_rtw_set_monitor_channel`: Added `struct net_device *dev` argument.
 2.  **Makefile / Kconfig**:
     - Fixed `MODULE_IMPORT_NS` reference errors.
-```
