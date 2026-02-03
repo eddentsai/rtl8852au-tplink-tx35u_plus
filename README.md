@@ -1,6 +1,6 @@
 # Realtek 8852AU Linux Driver (Linux Kernel 6.14+)
 
-本專案為 Realtek 8852AU USB 無線網卡 (802.11ax/Wi-Fi 6) 的 Linux 驅動程式。
+本專案為 Realtek 8852AU USB 無線網卡 (802.11ax/Wi-Fi 6) 的 Linux 驅動程式。(Based on lwfinger/rtl8852au)
 此版本已針對 **Linux Kernel 6.14** 進行適配與修正，解決了新版核心 API 變更導致的編譯錯誤。
 
 ## 🛠️ 建置環境 (Build Environment)
