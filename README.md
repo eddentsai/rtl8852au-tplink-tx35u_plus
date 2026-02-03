@@ -1,139 +1,92 @@
-This repo is was started with the code from the Realtek USB driver
-RTL8852AU_WiFi_linux_v1.15.0.1-0-g487ee886.20210714. The current code improves
-on the Realtek code by reworking the debug output to avoid spamming the logs.
-In the current settings, messages from RTW_ERR(), RTW_WARNING(), and
-RTW_WARNING() will be output.
+# Realtek 8852AU Linux Driver (Linux Kernel 6.14+)
 
-If you want more output, increase the value of CONFIG_RTW_LOG_LEVEL in Makefile.
-This parameter should probably be one that can be set at module load time,
-but that is a matter for another time.
+本專案為 Realtek 8852AU USB 無線網卡 (802.11ax/Wi-Fi 6) 的 Linux 驅動程式。
+此版本已針對 **Linux Kernel 6.14** 進行適配與修正，解決了新版核心 API 變更導致的編譯錯誤。
 
-The driver supports rtl8832au/rtl8852au chipsets.
+## 🛠️ 建置環境 (Build Environment)
 
-This driver currently handles the following devices:
+此驅動程式已在以下環境測試編譯成功：
 
-* BUFFALO WI-U3-1200AX2(/N) with USB ID 0411:0312
-* ASUS USB-AX56 with USB ID 0b05:1997
-* ASUS USB-AX56 with USB ID 0b05:1a62
-* EDUP EP-AX1696GS with USB ID 0bda:8832
-* Fenvi FU-AX1800P with USB ID 0bda:885c
-* Realtek Demo Board with USB ID 0bda:8832
-* Realtek Demo Board with USB ID 0bda:885a
-* Realtek Demo Board with USB ID 0bda:885c
-* D-Link DWA-X1850 with USB ID 2001:3321
-* TP-Link AX1800 with USB ID 2357:013f or 2357:0141
-* ipTIME AX2000U with USB ID 0bda:8832
-* ELECOM WDC-X1201DU3 with USB ID 056e:4020
+*   **OS**: Ubuntu / Linux
+*   **Kernel Version**: `6.14.0-37-generic`
+*   **Driver Version**: 8852AU
+*   **GCC Version**: Default system compiler
 
-The D-Link DWA-X1850 comes with a configuration that appears to be a USB disk,
-which contains a Windows driver. If a 'lsusb' command shows the ID 0bda:1a2b,
-then this disk is mounted. The way to avoid this is to edit either file
-/usr/lib/udev/rules.d/40-usb_modeswitch.rules, or
-/lib/udev/rules.d/40-usb_modeswitch.rules, whichever is on your system, and add
-the following lines:
+> **注意**：此版本包含了針對 Kernel 6.14+ 的 `cfg80211` API 修正 (包含 `get_tx_power` 與 `set_monitor_channel` 的參數調整)。
 
-# D-Link DWA-X1850 Wifi Dongle
-ATTR{idVendor}=="0bda", ATTR{idProduct}=="1a2b", RUN+="usb_modeswitch '/%k'"
+---
 
-### Installation instruction
-##### Requirements
-You will need to install "make", "gcc", "kernel headers", "kernel build essentials", and "git".
+## 🚀 安裝步驟 (Installation)
 
-For **Ubuntu**: You can install them with the following command
+### 1. 安裝必要套件
+在開始編譯之前，請確保系統已安裝編譯工具與核心標頭檔：
+
 ```bash
-sudo apt-get update
-sudo apt-get install make gcc linux-headers-$(uname -r) build-essential git
+sudo apt update
+sudo apt install build-essential linux-headers-$(uname -r) network-manager
 ```
-For **Fedora**: You can install them with the following command
-```bash
-sudo dnf install kernel-headers kernel-devel
-sudo dnf group install "C Development Tools and Libraries"
-```
-For **openSUSE**: Install necessary headers with
-```bash
-sudo zypper install make gcc kernel-devel kernel-default-devel git libopenssl-devel
-```
-For **Arch**: After installing the necessary kernel headers and base-devel,
-```bash
-git clone https://aur.archlinux.org/rtw89-dkms-git.git
-cd rtw89-dkms-git
-makepkg -sri
-```
-If any of the packages above are not found check if your distro installs them like that.
 
-##### Installation
-When a USB device is plugged in, or detected at boot, this rule causes the utulity
-usb_modeswitch to unload any 0bda:1a2b devices that it finds. If you have a
-device with different ID, change the rule accordingly.
+### 2. 編譯驅動程式 (Build)
+進入目錄並執行編譯：
 
-The build this driver, do the following:
-
-For all distros:
 ```bash
-git clone https://github.com/lwfinger/rtl8852au.git
-cd rtl8852au
 make
-sudo make install
+```
+*(編譯過程中若出現 `warning` 警告訊息屬於正常現象，只要沒有 `error` 即可)*
 
-When you get a new kernel, you will need to rebuild the driver. Do the following:
-cd rtl8852au
-git pull
-make
+### 3. 安裝驅動程式 (Install)
+將編譯好的模組安裝至系統目錄：
+
+```bash
 sudo make install
 ```
 
-When your kernel is updated, then do a 'git pull' and redo the make commands.
+### 4. 啟用驅動程式 (Activate)
+你可以選擇重新開機，或執行以下指令立即載入：
 
-##### Installation with module signing for SecureBoot
-For all distros:
 ```bash
-git clone git://github.com/lwfinger/rtl8852au.git
-cd rtl8852au
+sudo modprobe 8852au
+```
+
+---
+
+## 📶 連線設定 (Usage)
+
+### 檢查網卡狀態
+確認系統是否抓到網卡 (通常介面名稱為 `wlan0` 或 `wlxa...`)：
+
+```bash
+ip link
+```
+
+### 連接 Wi-Fi
+建議使用 `nmtui` 圖形化介面進行連線：
+
+```bash
+sudo nmtui
+```
+選擇 **"Activate a connection"**，找到你的 Wi-Fi 名稱並輸入密碼。
+
+---
+
+## 🔄 核心更新後的維護 (Kernel Update)
+
+如果你更新了 Linux Kernel (例如從 `6.14.0-37` 升級到 `6.14.0-38`)，驅動程式可能會失效。請回到此目錄執行以下指令重新安裝：
+
+```bash
+make clean
 make
-sudo make sign-install
-```
-You will be promted for a password, please keep it in mind and use it in next steps.
-
-Reboot to activate the new installed module.
-In the MOK managerment screen:
-1. Select "Enroll key" and enroll the key created by above sign-install step
-2. When promted, enter the password you entered when create sign key. 
-
-If you enter wrong password, your computer won't not rebootable. In this case,
-   use the BOOT menu from your BIOS, to boot into your OS then do below steps:
-
-```bash
-sudo mokutil --reset
-```
-Restart your computer
-Use BOOT menu from BIOS to boot into your OS
-In the MOK managerment screen, select reset MOK list
-Reboot then retry from the step make sign-install
-
-## Adding modules to DKMS for Debian/Ubuntu
-
-DKMS automatically rebuilds the driver module for each kernel update. (So that you don't have to `make; make install` at every update)
-
-Build and Installation (For currently active kernel)
-
-```bash
-# Add module to dkms tree
-sudo dkms add .
-
-# Build 
-sudo dkms build rtl8852au -v 1.15.0.1
-
-# Install 
-sudo dkms install rtl8852au -v 1.15.0.1
-
-# Check installation
-modinfo 8852au
-
-# Load driver 
-modprobe 8852au
+sudo make install
+sudo modprobe 8852au
 ```
 
+---
 
+## 📝 修正紀錄 (Patch Notes)
 
-
-Larry Finger
+針對 Linux 6.14 Kernel 進行了以下修正：
+1.  **os_dep/linux/ioctl_cfg80211.c**:
+    - 修正 `cfg80211_rtw_get_tx_power`：新增 `link_id` 參數。
+    - 修正 `cfg80211_rtw_set_monitor_channel`：新增 `struct net_device *dev` 參數。
+2.  **Makefile / Kconfig**:
+    - 修正 `MODULE_IMPORT_NS` 相關引用錯誤。
